@@ -1,0 +1,7 @@
+[
+  {"n":"Netflix","verdict":"Éxito Rotundo","label":"Recomendación","score":9.4,"c":"var(--green)","d":"Personalización hiper-segmentada predictiva. La IA es columna vertebral del negocio.","lesson":"Cultura de experimentación y métricas orientadas al usuario."},
+  {"n":"Kavak","verdict":"Escala & Servicio","label":"Operaciones","score":6.9,"c":"var(--cyan)","d":"Tasación algorítmica para el mercado de autos usados.","lesson":"Visión disruptiva pero desafíos operativos en postventa."},
+  {"n":"Duolingo","verdict":"Fricción Social","label":"Eficiencia","score":7.8,"c":"var(--amber)","d":"Integración de modelos de lenguaje para personalizar aprendizaje.","lesson":"Valor rápido, pero gestionar impacto laboral y reputación es crítico."},
+  {"n":"Zillow Offers","verdict":"Fracaso Financiero","label":"Algoritmo","score":3.6,"c":"var(--orange)","d":"Sobreconfiar en estimadores automáticos llevó a pérdidas.","lesson":"Validación humana y márgenes de seguridad son imprescindibles."},
+  {"n":"IBM Oncology","verdict":"Fracaso por Hype","label":"Medicina","score":2.8,"c":"var(--pink)","d":"Promesas sin validación clínica robusta.","lesson":"Rigor científico y datos de calidad son no negociables."}
+]
