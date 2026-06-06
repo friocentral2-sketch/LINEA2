@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Línea de Tiempo Interactiva · Historia, Evolución y Liderazgo en la IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060d;
+  --bg2:#080b18;
+  --ink:#e7ecff;
+  --muted:#8a93b8;
+  --line:#1b2138;
+  --glass:rgba(20,26,48,.55);
+  --glass-brd:rgba(120,140,220,.16);
+  --cyan:#22d3ee;
+  --green:#34f5a0;
+  --amber:#ffcb45;
+  --orange:#ff8a3d;
+  --pink:#ff5db1;
+  --violet:#9d7bff;
+  --shadow:0 18px 50px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Outfit",system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  overflow-x:hidden;
+  line-height:1.55;
+}
+/* atmospheric background */
+.bg-orbs{position:fixed;inset:0;z-index:-2;pointer-events:none}
+.bg-orbs::before,.bg-orbs::after{
+  content:"";position:absolute;border-radius:50%;filter:blur(120px);opacity:.5;
+}
+.bg-orbs::before{width:55vw;height:55vw;left:-10vw;top:-10vw;background:radial-gradient(circle,#1b3a8c,transparent 70%)}
+.bg-orbs::after{width:50vw;height:50vw;right:-12vw;bottom:5vh;background:radial-gradient(circle,#5a1f7a,transparent 70%)}
+.grid-overlay{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(circle at 50% 0,black,transparent 80%);
+}
+.noise{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* progress bar */
+#scrollbar{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));
+  box-shadow:0 0 14px rgba(120,160,255,.7);}
+
+a{color:var(--cyan);text-decoration:none}
+
+/* ===== HERO ===== */
+header.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:7vh 6vw 10vh;position:relative;
+}
+.kicker{
+  font-family:"JetBrains Mono",monospace;font-size:.78rem;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:1.4rem;
+  display:inline-flex;align-items:center;gap:.7rem;
+}
+.kicker::before{content:"";width:34px;height:1px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+header.hero h1{
+  font-family:"Chakra Petch",sans-serif;font-weight:700;
+  font-size:clamp(2.4rem,7vw,5.6rem);line-height:.98;margin:0 0 1.4rem;
+  letter-spacing:-.01em;
+}
+header.hero h1 .glow{
+  background:linear-gradient(120deg,#fff,var(--cyan) 40%,var(--violet) 75%,var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+header.hero p.lead{max-width:62ch;color:var(--muted);font-size:clamp(1rem,1.6vw,1.22rem)}
+.hero-stats{display:flex;flex-wrap:wrap;gap:2.2rem;margin-top:3rem}
+.hero-stats div{display:flex;flex-direction:column}
+.hero-stats b{font-family:"Chakra Petch";font-size:2.1rem;color:#fff;line-height:1}
+.hero-stats span{font-size:.8rem;color:var(--muted);letter-spacing:.05em;margin-top:.3rem}
+.scroll-hint{position:absolute;bottom:3.5vh;left:6vw;font-family:"JetBrains Mono";
+  font-size:.72rem;letter-spacing:.3em;color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* ===== SECTION SHELL ===== */
+section{padding:6vh 6vw}
+.sec-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.4rem;flex-wrap:wrap}
+.sec-head .idx{font-family:"JetBrains Mono";color:var(--violet);font-size:.9rem}
+.sec-head h2{font-family:"Chakra Petch";font-weight:700;font-size:clamp(1.6rem,3.6vw,2.6rem);margin:0;letter-spacing:-.01em}
+.sec-head p{color:var(--muted);margin:.2rem 0 0;flex-basis:100%;max-width:70ch}
+
+/* ===== CONCEPT CARDS ===== */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:1.1rem}
+.gcard{
+  background:var(--glass);border:1px solid var(--glass-brd);border-radius:18px;
+  padding:1.5rem 1.4rem;backdrop-filter:blur(14px);position:relative;overflow:hidden;
+  transition:transform .35s,border-color .35s,box-shadow .35s;
+}
+.gcard:hover{transform:translateY(-5px);border-color:rgba(150,180,255,.4);box-shadow:var(--shadow)}
+.gcard .tag{font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.18em;text-transform:uppercase}
+.gcard h3{font-family:"Chakra Petch";margin:.6rem 0 .55rem;font-size:1.18rem}
+.gcard p{color:var(--muted);font-size:.92rem;margin:0}
+.gcard .ring{position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;
+  border:1px solid currentColor;opacity:.25}
+
+/* type-of-ai pills */
+.types-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.1rem;margin-top:1.1rem}
+.tcard{background:linear-gradient(160deg,rgba(255,255,255,.04),transparent);
+  border:1px solid var(--glass-brd);border-radius:18px;padding:1.6rem 1.5rem;position:relative}
+.tcard h3{font-family:"Chakra Petch";margin:.2rem 0 .5rem;font-size:1.25rem}
+.tcard ul{margin:.7rem 0 0;padding-left:1.1rem;color:var(--muted);font-size:.9rem}
+.tcard li{margin:.25rem 0}
+.tcard .em{font-size:1.6rem}
+
+/* ===== CONTROLS ===== */
+.controls{position:sticky;top:0;z-index:40;background:rgba(5,6,13,.82);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:1rem 6vw;display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}
+.search{flex:1;min-width:200px;display:flex;align-items:center;gap:.6rem;
+  background:rgba(255,255,255,.05);border:1px solid var(--glass-brd);border-radius:999px;
+  padding:.55rem 1rem}
+.search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-family:"Outfit";font-size:.95rem}
+.search input::placeholder{color:var(--muted)}
+.search svg{flex:none;opacity:.7}
+.filters{display:flex;flex-wrap:wrap;gap:.5rem}
+.fbtn{font-family:"JetBrains Mono";font-size:.72rem;letter-spacing:.06em;cursor:pointer;
+  background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--glass-brd);
+  padding:.5rem .85rem;border-radius:999px;transition:all .25s;text-transform:uppercase}
+.fbtn:hover{color:#fff;border-color:rgba(150,180,255,.45)}
+.fbtn.active{color:#05060d;font-weight:600}
+.fbtn[data-era="all"].active{background:#fff;border-color:#fff}
+.fbtn[data-era="fundamentos"].active{background:var(--cyan);border-color:var(--cyan)}
+.fbtn[data-era="clasico"].active{background:var(--green);border-color:var(--green)}
+.fbtn[data-era="vispera"].active{background:var(--amber);border-color:var(--amber)}
+.fbtn[data-era="explosion"].active{background:var(--orange);border-color:var(--orange)}
+.fbtn[data-era="transformer"].active{background:var(--pink);border-color:var(--pink)}
+.fbtn[data-era="fundacional"].active{background:var(--violet);border-color:var(--violet)}
+#count{font-family:"JetBrains Mono";font-size:.72rem;color:var(--muted);margin-left:auto}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;max-width:1080px;margin:3rem auto 0;padding-left:0}
+.spine{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);
+  background:var(--line);overflow:hidden}
+.spine #fill{position:absolute;top:0;left:0;width:100%;height:0;
+  background:linear-gradient(180deg,var(--cyan),var(--green),var(--amber),var(--orange),var(--pink),var(--violet));
+  box-shadow:0 0 14px rgba(120,170,255,.6)}
+.node{position:relative;width:50%;padding:1.3rem 2.2rem;opacity:0;transform:translateY(40px);
+  transition:opacity .7s,transform .7s}
+.node.show{opacity:1;transform:none}
+.node.left{left:0;text-align:right}
+.node.right{left:50%}
+.dot{position:absolute;top:1.9rem;width:15px;height:15px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--c);box-shadow:0 0 0 4px rgba(0,0,0,.4),0 0 14px var(--c);z-index:2}
+.node.left .dot{right:-7.5px}
+.node.right .dot{left:-7.5px}
+.card{background:var(--glass);border:1px solid var(--glass-brd);border-left:3px solid var(--c);
+  border-radius:14px;padding:1rem 1.15rem;cursor:pointer;backdrop-filter:blur(12px);
+  transition:transform .3s,box-shadow .3s,border-color .3s;display:inline-block;text-align:left;width:100%}
+.node.left .card{border-left:none;border-right:3px solid var(--c)}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.card.pulse{animation:pulse 1.1s ease}
+@keyframes pulse{0%,100%{box-shadow:var(--shadow)}40%{box-shadow:0 0 0 3px var(--c),var(--shadow)}}
+.card .yr{font-family:"JetBrains Mono";font-size:.74rem;color:var(--c);letter-spacing:.08em}
+.card h4{font-family:"Chakra Petch";margin:.25rem 0 .35rem;font-size:1.1rem;line-height:1.15}
+.card .who{font-size:.8rem;color:var(--muted)}
+.card .desc{font-size:.86rem;color:var(--muted);margin:.5rem 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .more{font-family:"JetBrains Mono";font-size:.68rem;color:var(--c);margin-top:.6rem;display:inline-block}
+
+/* era divider */
+.era-div{position:relative;width:100%;text-align:center;margin:2.2rem 0 .5rem;z-index:3}
+.era-div span{font-family:"Chakra Petch";font-weight:600;font-size:.95rem;letter-spacing:.05em;
+  background:var(--bg2);border:1px solid var(--glass-brd);color:var(--c);
+  padding:.5rem 1.2rem;border-radius:999px;box-shadow:0 0 18px rgba(0,0,0,.5)}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(2,3,9,.78);backdrop-filter:blur(6px);
+  z-index:80;display:none;align-items:center;justify-content:center;padding:5vh 5vw}
+.modal-bg.open{display:flex;animation:fade .3s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:linear-gradient(170deg,#0c1024,#07091a);border:1px solid var(--glass-brd);
+  border-top:4px solid var(--c);border-radius:20px;max-width:620px;width:100%;
+  max-height:88vh;overflow:auto;padding:2rem 2rem 2.2rem;box-shadow:var(--shadow);position:relative}
+.modal .close{position:absolute;top:1rem;right:1.1rem;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--glass-brd);background:rgba(255,255,255,.05);color:var(--ink);
+  cursor:pointer;font-size:1.1rem;line-height:1}
+.modal .m-era{font-family:"JetBrains Mono";font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--c)}
+.modal h3{font-family:"Chakra Petch";font-size:1.7rem;margin:.4rem 0 .15rem}
+.modal .m-who{color:var(--muted);font-size:.92rem;margin-bottom:1rem}
+.modal .m-desc{font-size:.98rem;color:#cfd6f5;margin:0 0 1.2rem}
+.formula{font-family:"JetBrains Mono";font-size:.86rem;background:rgba(0,0,0,.45);
+  border:1px solid var(--glass-brd);border-radius:12px;padding:.9rem 1rem;color:var(--green);
+  overflow-x:auto;white-space:nowrap;margin:0 0 1.2rem}
+.m-label{font-family:"JetBrains Mono";font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:.4rem 0 .6rem}
+.rel-chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{font-family:"JetBrains Mono";font-size:.74rem;cursor:pointer;border-radius:999px;
+  padding:.4rem .8rem;border:1px solid var(--glass-brd);background:rgba(255,255,255,.04);
+  color:var(--ink);transition:all .25s}
+.chip:hover{border-color:var(--c);color:var(--c);transform:translateY(-2px)}
+.m-paper{display:inline-flex;align-items:center;gap:.4rem;margin-top:1.2rem;font-family:"JetBrains Mono";font-size:.78rem}
+
+/* ===== BUSINESS CASES ===== */
+.cases-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem}
+.case{background:var(--glass);border:1px solid var(--glass-brd);border-radius:18px;
+  padding:1.5rem;backdrop-filter:blur(12px);position:relative;overflow:hidden;
+  border-top:3px solid var(--cc)}
+.case .verdict{font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cc)}
+.case h3{font-family:"Chakra Petch";font-size:1.45rem;margin:.4rem 0 .3rem}
+.case p{color:var(--muted);font-size:.9rem;margin:.2rem 0 1rem}
+.score{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.9rem}
+.score b{font-family:"Chakra Petch";font-size:2rem;color:var(--cc)}
+.score small{color:var(--muted);font-family:"JetBrains Mono";font-size:.72rem}
+.bar{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:.2rem}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:var(--cc);
+  box-shadow:0 0 10px var(--cc);transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+.case .lesson{font-size:.84rem;color:#cfd6f5;margin-top:1rem;border-top:1px solid var(--line);padding-top:.9rem}
+
+/* footer */
+footer{padding:5vh 6vw 7vh;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+footer .src{font-family:"JetBrains Mono";font-size:.76rem;margin-top:.8rem;word-break:break-all}
+footer b{color:var(--ink);font-family:"Chakra Petch"}
+
+@media(max-width:760px){
+  .spine{left:18px}
+  .node{width:100%;left:0!important;text-align:left!important;padding:1rem 0 1rem 42px}
+  .node.left .card{border-right:none;border-left:3px solid var(--c)}
+  .node .dot{left:11px!important;right:auto!important}
+  .era-div{text-align:left;padding-left:0}
+  .controls{padding:.9rem 5vw}
+  #count{width:100%;margin:.3rem 0 0}
+}
+</style>
+</head>
+<body>
+<div class="bg-orbs"></div>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+<div id="scrollbar"></div>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="kicker">Cátedra Optativa · IA para Líderes Innovadores</span>
+  <h1>Historia, evolución y<br><span class="glow">liderazgo en la IA</span></h1>
+  <p class="lead">Una línea de tiempo interactiva que recorre desde los fundamentos matemáticos de la inteligencia artificial hasta los modelos fundacionales de hoy — con los conceptos clave, los hitos técnicos y los casos de negocio que definieron quién lidera y por qué.</p>
+  <div class="hero-stats">
+    <div><b id="s-models">0</b><span>MODELOS EMBLEMÁTICOS</span></div>
+    <div><b>6</b><span>ERAS DE LA IA</span></div>
+    <div><b>1763<span style="font-size:1rem">→</span>2024</b><span style="margin-top:.3rem">LÍNEA TEMPORAL</span></div>
+    <div><b>5</b><span>CASOS DE NEGOCIO</span></div>
+  </div>
+  <div class="scroll-hint">↓ DESPLÁZATE PARA EXPLORAR</div>
+</header>
+
+<!-- CONCEPTS -->
+<section id="conceptos">
+  <div class="sec-head">
+    <span class="idx">01</span>
+    <h2>¿Qué es realmente la IA?</h2>
+    <p>Desmitificar la IA: ni máquina omnisciente ni moda pasajera, sino un conjunto de técnicas computacionales con capacidades específicas y límites identificables. Una herramienta análoga a un “Excel para el cerebro”.</p>
+  </div>
+  <div class="concept-grid">
+    <div class="gcard" style="color:var(--cyan)"><div class="ring"></div>
+      <span class="tag" style="color:var(--cyan)">DIFERENCIA CLAVE</span>
+      <h3>Software tradicional vs IA</h3>
+      <p>El software clásico sigue reglas explícitas (“si A, entonces B”). La IA, en cambio, aprende patrones a partir de datos cuando es impráctico escribir todas las reglas a mano.</p></div>
+    <div class="gcard" style="color:var(--green)"><div class="ring"></div>
+      <span class="tag" style="color:var(--green)">NATURALEZA</span>
+      <h3>Sistema probabilístico</h3>
+      <p>Genera resultados por inferencias, pesos estadísticos y niveles de confianza. Es muy útil sin ser infalible: puede equivocarse, sesgarse o “alucinar”.</p></div>
+    <div class="gcard" style="color:var(--amber)"><div class="ring"></div>
+      <span class="tag" style="color:var(--amber)">METÁFORA</span>
+      <h3>Excel para el cerebro</h3>
+      <p>No reemplaza el juicio profesional: amplifica la capacidad de sintetizar datos, explorar escenarios y detectar patrones, siempre bajo supervisión humana.</p></div>
+    <div class="gcard" style="color:var(--violet)"><div class="ring"></div>
+      <span class="tag" style="color:var(--violet)">CRITERIO</span>
+      <h3>Pensamiento crítico</h3>
+      <p>No se opone al uso de la IA; lo hace más sólido. Obliga a evaluar la calidad de los datos y validar resultados antes de decidir.</p></div>
+  </div>
+
+  <div class="sec-head" style="margin-top:4rem">
+    <span class="idx">01·b</span>
+    <h2>Tipos de IA y el ecosistema actual</h2>
+    <p>Tres familias con capacidades, expectativas y límites distintos. Para el liderazgo, elegir bien depende menos del entusiasmo tecnológico y más de la claridad sobre el problema, el contexto y el valor esperado.</p>
+  </div>
+  <div class="types-grid">
+    <div class="tcard" style="--c:var(--cyan);border-top:3px solid var(--cyan)">
+      <span class="em">📊</span><h3>IA Predictiva</h3>
+      <p style="color:var(--muted);font-size:.9rem;margin:0">Estima resultados probables a partir de datos históricos: clasifica casos, anticipa comportamientos, estima riesgos.</p>
+      <ul><li>Predicción de demanda y análisis crediticio</li><li>Detección de fraude</li><li>Mantenimiento predictivo industrial</li></ul></div>
+    <div class="tcard" style="--c:var(--pink);border-top:3px solid var(--pink)">
+      <span class="em">🎨</span><h3>IA Generativa</h3>
+      <p style="color:var(--muted);font-size:.9rem;margin:0">Crea contenido nuevo: texto, imágenes, audio, video, código. Produce artefactos, no solo clasificaciones.</p>
+      <ul><li>Errores plausibles y sesgos</li><li>Problemas de autoría</li><li>Riesgo de dependencia excesiva</li></ul></div>
+    <div class="tcard" style="--c:var(--violet);border-top:3px solid var(--violet)">
+      <span class="em">🤖</span><h3>IA Agéntica</h3>
+      <p style="color:var(--muted);font-size:.9rem;margin:0">Ejecuta secuencias de acciones con autonomía: planifica, usa herramientas, itera y ajusta su comportamiento.</p>
+      <ul><li>Frontera emergente</li><li>Exige supervisión y gobernanza</li><li>Riesgo de errores encadenados</li></ul></div>
+  </div>
+</section>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="q" type="text" placeholder="Buscar modelo, autor o año… (ej. Hinton, 2017, Transformer)">
+  </div>
+  <div class="filters" id="filters">
+    <button class="fbtn active" data-era="all">Todas</button>
+    <button class="fbtn" data-era="fundamentos">Fundamentos</button>
+    <button class="fbtn" data-era="clasico">Clásico</button>
+    <button class="fbtn" data-era="vispera">Víspera DL</button>
+    <button class="fbtn" data-era="explosion">Explosión DL</button>
+    <button class="fbtn" data-era="transformer">Transformer</button>
+    <button class="fbtn" data-era="fundacional">Fundacional</button>
+  </div>
+  <span id="count"></span>
+</div>
+
+<!-- TIMELINE -->
+<section id="timeline-sec" style="padding-top:3vh">
+  <div class="sec-head">
+    <span class="idx">02</span>
+    <h2>Modelos emblemáticos de la IA</h2>
+    <p>Cada hito construye sobre los anteriores. Toca cualquier tarjeta para ver su descripción, fórmula y conexiones con otros modelos. Filtra por era o busca por nombre/autor/año.</p>
+  </div>
+  <div class="timeline" id="timeline">
+    <div class="spine"><div id="fill"></div></div>
+  </div>
+</section>
+
+<!-- BUSINESS CASES -->
+<section id="casos">
+  <div class="sec-head">
+    <span class="idx">03</span>
+    <h2>Liderazgo a prueba: casos de negocio</h2>
+    <p>Cinco organizaciones que implementaron IA. La diferencia entre éxito y fracaso rara vez fue la tecnología: fue el liderazgo, la gobernanza de datos y la gestión del factor humano. Puntaje global sobre 10.</p>
+  </div>
+  <div class="cases-grid" id="cases"></div>
+</section>
+
+<footer>
+  <b style="font-size:1.05rem">Cátedra Optativa: Inteligencia Artificial para Líderes Innovadores</b><br>
+  Material pedagógico de análisis estratégico · Unidad 1 — Línea de tiempo interactiva.<br>
+  Diseñado con HTML5, CSS vanilla y JavaScript. Sin dependencias externas.
+  <div class="src">Fuentes del recurso original: github.com/EncyclopediaWorld/howaiworks · yushundong.github.io</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalbg">
+  <div class="modal" id="modal" style="--c:var(--cyan)">
+    <button class="close" id="closeM">✕</button>
+    <span class="m-era" id="m-era"></span>
+    <h3 id="m-name"></h3>
+    <div class="m-who" id="m-who"></div>
+    <p class="m-desc" id="m-desc"></p>
+    <div id="m-formula-wrap"><div class="m-label">Fórmula / Idea central</div><div class="formula" id="m-formula"></div></div>
+    <div id="m-rel-wrap"><div class="m-label">Conecta con</div><div class="rel-chips" id="m-rel"></div></div>
+    <a class="m-paper" id="m-paper" target="_blank" rel="noopener">📄 Artículo original →</a>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const ERAS={
+  fundamentos:{name:"Fundamentos Matemáticos",c:"var(--cyan)"},
+  clasico:{name:"Aprendizaje Estadístico Clásico",c:"var(--green)"},
+  vispera:{name:"La Víspera del Deep Learning",c:"var(--amber)"},
+  explosion:{name:"La Explosión del Deep Learning",c:"var(--orange)"},
+  transformer:{name:"La Revolución Transformer",c:"var(--pink)"},
+  fundacional:{name:"Modelos Fundacionales y la Era de la IAG",c:"var(--violet)"}
+};
+
+/* id, year, name, era, who, desc, formula, rel[], paper */
+const M=[
+ {id:"bayes",y:1763,n:"Teorema de Bayes",e:"fundamentos",who:"Thomas Bayes",d:"Actualiza tu creencia con nueva evidencia: previa × verosimilitud → posterior. El marco central de la inferencia probabilística y la base del razonamiento de toda la IA estadística.",f:"P(A|B) = P(B|A)·P(A) / P(B)",rel:["naivebayes","gmm"],p:"https://en.wikipedia.org/wiki/Bayes%27_theorem"},
+ {id:"markov",y:1906,n:"Cadena de Markov",e:"fundamentos",who:"Andréi Márkov",d:"Transiciones de estado sin memoria: el siguiente estado depende solo del actual. Piedra angular de HMM, MCMC y PageRank.",f:"P(Xₜ₊₁ | Xₜ, …, X₀) = P(Xₜ₊₁ | Xₜ)",rel:["hmm","rnn","boltzmann"],p:"https://en.wikipedia.org/wiki/Markov_chain"},
+ {id:"mcculloch",y:1943,n:"Neurona de McCulloch-Pitts",e:"fundamentos",who:"McCulloch & Pitts",d:"Primer modelo matemático de una neurona: salida binaria controlada por entradas ponderadas (+1 / −1) contra un umbral θ. Puede calcular AND, OR, NOT. Precursor de toda neurona artificial.",f:"y = 1 si Σ wᵢxᵢ ≥ θ, sino 0",rel:["perceptron"],p:"https://doi.org/10.1007/BF02478259"},
+ {id:"shannon",y:1948,n:"Teoría de la Información",e:"fundamentos",who:"Claude Shannon",d:"Definió la información como sorpresa: los eventos raros conllevan más información. La entropía mide la incertidumbre promedio — el mínimo de bits por símbolo.",f:"H = −Σ p·log₂ p",rel:["naivebayes","dtree"],p:"https://doi.org/10.1002/j.1538-7305.1948.tb01338.x"},
+ {id:"perceptron",y:1958,n:"Perceptrón",e:"fundamentos",who:"Frank Rosenblatt",d:"La primera neurona artificial capaz de aprender de datos. Calcula la suma ponderada de entradas; activa si supera el umbral. Su limitación lineal sería corregida después.",f:"y = step(w·x + b)",rel:["mcculloch","adaline","backprop","knn"],p:"https://doi.org/10.1037/h0042519"},
+ {id:"adaline",y:1960,n:"Adaline",e:"fundamentos",who:"Widrow & Hoff",d:"Neurona lineal adaptativa: calcula el error antes de la activación, permitiendo verdadero descenso de gradiente (regla LMS). El límite de decisión se desliza suavemente.",f:"ΔW = η·(d − y)·x  (regla LMS)",rel:["perceptron","backprop","autodiff"],p:""},
+ {id:"pca",y:1901,n:"PCA (Componentes Principales)",e:"clasico",who:"Karl Pearson",d:"Reducción de dimensionalidad: encuentra las direcciones ortogonales de máxima varianza. Proyecta sobre los vectores propios principales para descartar ruido y preservar estructura.",f:"Cov = XᵀX/n → PC1 = argmax‖w‖=1 wᵀ·Cov·w",rel:["tsne","vae"],p:"https://doi.org/10.1080/14786440109462720"},
+ {id:"knn",y:1967,n:"k-Vecinos Más Cercanos",e:"clasico",who:"Cover & Hart",d:"No necesita entrenamiento: clasifica un punto nuevo por votación mayoritaria de sus k muestras más cercanas. Sencillo pero sorprendentemente efectivo.",f:"ŷ = voto_mayoritario(k vecinos más cercanos)",rel:["perceptron","svm"],p:"https://doi.org/10.1109/TIT.1967.1053964"},
+ {id:"naivebayes",y:1960,n:"Clasificador Naive Bayes",e:"clasico",who:"Aplicación de Bayes",d:"Asume que las características son independientes (¡normalmente no lo son!), pero es asombrosamente efectivo para filtrado de spam y clasificación de texto.",f:"P(clase|x) ∝ P(clase)·∏ P(xᵢ|clase)",rel:["bayes","gmm"],p:"https://en.wikipedia.org/wiki/Naive_Bayes_classifier"},
+ {id:"hmm",y:1966,n:"Modelo Oculto de Markov (HMM)",e:"clasico",who:"Baum & Viterbi",d:"Extiende la cadena de Markov con estados ocultos que no observas directamente, solo sus emisiones ruidosas. Dominó el reconocimiento de voz durante 40 años.",f:"Viterbi: secuencia oculta más probable dadas las observaciones",rel:["markov","lstm"],p:"https://doi.org/10.1109/5.18626"},
+ {id:"autodiff",y:1970,n:"Diferenciación Automática",e:"clasico",who:"Seppo Linnainmaa",d:"La regla de la cadena en código: calcula gradientes hacia atrás desde la salida hasta las entradas. La base matemática de TODO el entrenamiento de redes neuronales.",f:"∂y/∂x = regla de la cadena en grafo de cómputo",rel:["adaline","backprop"],p:"https://en.wikipedia.org/wiki/Automatic_differentiation"},
+ {id:"neocognitron",y:1980,n:"Neocognitrón",e:"clasico",who:"Kunihiko Fukushima",d:"Reconocedor de patrones jerárquico inspirado en la corteza visual: células simples detectan rasgos locales, células complejas dan invarianza a la traslación. Ancestro de la CNN.",f:"células simples → células complejas → invarianza",rel:["perceptron","cnn"],p:"https://doi.org/10.1007/BF00344251"},
+ {id:"hopfield",y:1982,n:"Red de Hopfield",e:"clasico",who:"John Hopfield",d:"Memoria asociativa: red de neuronas binarias que almacena patrones como mínimos de energía. Premio Nobel de Física 2024. Su equivalencia formal con la atención se probó en 2020.",f:"E = −½ Σ wᵢⱼ sᵢ sⱼ  (descenso de energía)",rel:["boltzmann","transformer"],p:"https://doi.org/10.1073/pnas.79.8.2554"},
+ {id:"boltzmann",y:1985,n:"Máquina de Boltzmann",e:"clasico",who:"Hinton & Sejnowski",d:"Red estocástica: las neuronas se activan/desactivan aleatoriamente según su energía. Los estados de menor energía son más probables. Su variante restringida (RBM) habilitó las DBN.",f:"P(estado) ∝ e^(−E/T)",rel:["markov","hopfield","dbn","rbm"],p:"https://doi.org/10.1016/S0364-0213(85)80012-4"},
+ {id:"rnn",y:1986,n:"RNN (Red Neuronal Recurrente)",e:"clasico",who:"Rumelhart et al.",d:"Redes con bucles: el estado oculto actúa como memoria, llevando información de pasos anteriores. Esencial para secuencias como texto, voz y series temporales.",f:"hₜ = tanh(Wₕ·hₜ₋₁ + Wₓ·xₜ + b)",rel:["markov","lstm"],p:"https://doi.org/10.1038/323533a0"},
+ {id:"backprop",y:1986,n:"Retropropagación",e:"clasico",who:"Rumelhart, Hinton & Williams",d:"Hizo entrenables las redes neuronales: calcula el error en la salida y propaga gradientes hacia atrás por cada capa. Resolvió el problema XOR y habilitó TODO el deep learning.",f:"∂L/∂wᵢ = ∂L/∂out · ∂out/∂h · ∂h/∂wᵢ",rel:["adaline","autodiff","perceptron","cnn"],p:"https://doi.org/10.1038/323533a0"},
+ {id:"dtree",y:1986,n:"Árbol de Decisión (ID3)",e:"clasico",who:"Ross Quinlan",d:"Divide recursivamente los datos en la característica que da mayor ganancia de información. Sencillo, rápido y explicable. Base de Random Forest, GBDT y XGBoost.",f:"ganancia = H(padre) − Σ (|hijo|/|padre|)·H(hijo)",rel:["shannon","randomforest","gbdt","adaboost"],p:"https://link.springer.com/article/10.1007/BF00116251"},
+ {id:"qlearning",y:1989,n:"Aprendizaje Q",e:"clasico",who:"Chris Watkins",d:"Aprendizaje por refuerzo sin modelo: un agente explora, recolecta recompensas y actualiza una tabla Q(s,a). Puro ensayo y error con la regla de Bellman. Habilita DQN y luego RLHF.",f:"Q(s,a) ← Q(s,a) + α[r + γ·max Q(s',a') − Q(s,a)]",rel:["dqn","chatgpt","alphago"],p:"https://doi.org/10.1007/BF00992698"},
+ {id:"gmm",y:1977,n:"GMM + Algoritmo EM",e:"vispera",who:"Dempster et al.",d:"Ajusta una mezcla de gaussianas vía Expectativa-Maximización. Paso E: asignación suave de clústeres; paso M: actualiza parámetros. Itera hasta converger.",f:"E: P(k|xᵢ)=πₖN(xᵢ|μₖ,σₖ)/Σ … | M: actualizar μ,σ,π",rel:["bayes","naivebayes","vae"],p:"https://doi.org/10.1111/j.2517-6161.1977.tb01600.x"},
+ {id:"svm",y:1995,n:"SVM (Vectores de Soporte)",e:"vispera",who:"Cortes & Vapnik",d:"Clasificador de margen máximo: encuentra el hiperplano que separa las clases con el margen más amplio. El truco de kernel permite límites no lineales. Dominó el ML hasta AlexNet.",f:"max margen = 2/‖w‖ s.a. yᵢ(w·xᵢ+b) ≥ 1",rel:["knn","alexnet"],p:"https://doi.org/10.1007/BF00994018"},
+ {id:"lstm",y:1997,n:"LSTM (Memoria Larga Corta)",e:"vispera",who:"Hochreiter & Schmidhuber",d:"Solución al gradiente desvanecido de las RNN: tres puertas (olvido, entrada, salida) controlan qué recordar, añadir y emitir. Habilitó Seq2Seq y ELMo.",f:"cₜ = fₜ⊙cₜ₋₁ + iₜ⊙tanh(…)",rel:["rnn","hmm","seq2seq","elmo"],p:"https://doi.org/10.1162/neco.1997.9.8.1735"},
+ {id:"adaboost",y:1997,n:"AdaBoost",e:"vispera",who:"Freund & Schapire",d:"Boosting adaptativo: entrena clasificadores débiles en secuencia, cada uno enfocándose en los errores del anterior. Inspira directamente GBDT y XGBoost.",f:"H(x) = sign(Σ αₜ hₜ(x)),  αₜ = ½ ln((1−εₜ)/εₜ)",rel:["dtree","gbdt"],p:"https://doi.org/10.1006/jcss.1997.1504"},
+ {id:"cnn",y:1998,n:"CNN / LeNet",e:"vispera",who:"Yann LeCun",d:"Red neuronal convolucional para reconocer dígitos: los filtros se deslizan sobre la imagen para extraer rasgos, el pooling los reduce. Conduce directamente a AlexNet y ResNet.",f:"Entrada → [Conv → ReLU → Pool]×N → Denso → Clase",rel:["neocognitron","backprop","alexnet","resnet"],p:"http://yann.lecun.com/exdb/lenet/"},
+ {id:"randomforest",y:2001,n:"Bosque Aleatorio",e:"vispera",who:"Leo Breiman",d:"Conjunto de árboles de decisión: cada árbol se entrena en un subconjunto aleatorio de datos y rasgos. Predicción por votación mayoritaria (bagging) para reducir el sobreajuste.",f:"ŷ = modo(árbol₁(x), …, árbolₙ(x))",rel:["dtree","gbdt"],p:"https://doi.org/10.1023/A:1010933404324"},
+ {id:"gbdt",y:2001,n:"GBDT (Gradient Boosting)",e:"vispera",who:"Jerome Friedman",d:"Cada nuevo árbol ajusta los errores residuales del conjunto anterior, reduciendo la pérdida de forma secuencial. Optimizado más tarde en XGBoost.",f:"Fₘ(x) = Fₘ₋₁(x) + η·hₘ(x),  hₘ ≈ residuos",rel:["adaboost","dtree","randomforest","xgboost"],p:"https://doi.org/10.1214/aos/1013203451"},
+ {id:"nnlm",y:2003,n:"NNLM (Modelo de Lenguaje Neuronal)",e:"vispera",who:"Yoshua Bengio",d:"Predice la siguiente palabra con una red neuronal sobre incrustaciones de palabras. Cada palabra obtiene una representación vectorial aprendida. Conduce a Word2Vec y GPT.",f:"P(wₜ|wₜ₋₁,…) = softmax(W·tanh(C·[e(wₜ₋₁);…]))",rel:["backprop","word2vec","gpt1"],p:"https://jmlr.org/papers/v3/bengio03a.html"},
+ {id:"dbn",y:2006,n:"Red de Creencias Profundas (DBN)",e:"vispera",who:"Geoffrey Hinton",d:"Entrena redes profundas apilando Máquinas de Boltzmann Restringidas capa a capa. Cada capa aprende rasgos más abstractos. La primera red profunda exitosa.",f:"Capa1: aristas → Capa2: formas → Capa3: objetos",rel:["boltzmann","rbm","alexnet"],p:"https://doi.org/10.1162/neco.2006.18.7.1527"},
+ {id:"sparseae",y:2006,n:"Autoencoder Escaso",e:"vispera",who:"Andrew Ng et al.",d:"Comprime datos por un cuello de botella y los reconstruye. La restricción de escasez fuerza que solo unas pocas neuronas se activen, produciendo rasgos eficientes.",f:"Entrada → Codificador → cuello de botella → Decodificador ≈ Entrada",rel:["dbn","vae","dae"],p:"https://arxiv.org/abs/1312.5663"},
+ {id:"rbm",y:2006,n:"Máquina de Boltzmann Restringida",e:"vispera",who:"Geoffrey Hinton",d:"Modelo basado en energía de dos capas sin conexiones intra-capa. Entrenado por Divergencia Contrastiva. Bloque de construcción apilado para formar DBN.",f:"E(v,h) = −bᵀv − cᵀh − vᵀWh",rel:["boltzmann","dbn","vae"],p:"https://doi.org/10.1162/neco.2006.18.7.1527"},
+ {id:"dae",y:2008,n:"Autoencoder de Eliminación de Ruido",e:"vispera",who:"Vincent et al.",d:"Corrompe la entrada con ruido y entrena la red para reconstruir el original limpio. Fuerza rasgos robustos. El principio “denoise para aprender” inspira los Modelos de Difusión.",f:"x → +ruido → x̃ → Codif/Decodif → x̂ ≈ x (¡no x̃!)",rel:["sparseae","diffusion"],p:"https://doi.org/10.1145/1390156.1390294"},
+ {id:"tsne",y:2008,n:"t-SNE",e:"vispera",who:"van der Maaten & Hinton",d:"Reducción de dimensionalidad no lineal: modela similitudes en alta dimensión como gaussianas y en 2D como t de Student, minimizando KL. Herramienta estándar para visualizar incrustaciones.",f:"Qᵢⱼ = (1+‖yᵢ−yⱼ‖²)⁻¹ / Z ; min KL(P‖Q)",rel:["pca","word2vec"],p:"https://jmlr.org/papers/v9/vandermaaten08a.html"},
+ {id:"alexnet",y:2012,n:"AlexNet",e:"explosion",who:"Krizhevsky, Sutskever & Hinton",d:"La CNN que aplastó ImageNet por ~10%. Más profunda que LeNet, con ReLU, dropout y entrenamiento en GPU. Demostró que el deep learning funciona a escala y encendió la era moderna.",f:"227×227 → Conv×5 → FC → 1000 clases",rel:["cnn","svm","dbn","dropout","resnet","vit"],p:"https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html"},
+ {id:"word2vec",y:2013,n:"Word2Vec",e:"explosion",who:"Tomas Mikolov",d:"Incrustaciones de palabras donde las relaciones semánticas se vuelven aritméticas: Rey − Hombre + Mujer ≈ Reina. Sus vectores densos alimentan ELMo, BERT y todo el PLN moderno.",f:"rey − hombre + mujer ≈ reina",rel:["nnlm","tsne","elmo","bert"],p:"https://arxiv.org/abs/1301.3781"},
+ {id:"vae",y:2013,n:"VAE (Autoencoder Variacional)",e:"explosion",who:"Kingma & Welling",d:"Codifica datos en una distribución latente suave, muestrea y decodifica. El espacio latente es continuo e interpolable. Fluye hacia los Modelos de Difusión.",f:"x → (μ,σ²) → z~N(μ,σ²) → x̂",rel:["sparseae","gmm","pca","diffusion","gan"],p:"https://arxiv.org/abs/1312.6114"},
+ {id:"dqn",y:2013,n:"DQN (Red Q Profunda)",e:"explosion",who:"DeepMind",d:"Combina Q-Learning con una red profunda, repetición de experiencias y redes objetivo para dominar juegos de Atari desde píxeles brutos, sin conocimiento del dominio.",f:"Q(s,a) ← Q + α[r + γ·max Q_target − Q] + replay",rel:["qlearning","alexnet","chatgpt"],p:"https://arxiv.org/abs/1312.5602"},
+ {id:"vggnet",y:2014,n:"VGGNet",e:"explosion",who:"Simonyan & Zisserman",d:"Reemplaza kernels grandes por pilas de pequeñas convoluciones 3×3: mismo campo receptivo, menos parámetros y más no linealidad. Inspira los bloques de ResNet.",f:"2×(3×3) = campo receptivo 5×5 con menos parámetros",rel:["cnn","alexnet","resnet"],p:"https://arxiv.org/abs/1409.1556"},
+ {id:"googlenet",y:2014,n:"Inception / GoogLeNet",e:"explosion",who:"Szegedy et al.",d:"El módulo Inception ejecuta cuatro ramas paralelas (1×1, 3×3, 5×5, pooling) y concatena salidas. 22 capas pero solo 4M de parámetros vs 138M de VGG.",f:"Salida = Concat[Conv1×1, Conv3×3, Conv5×5, MaxPool]",rel:["vggnet","resnet"],p:"https://arxiv.org/abs/1409.4842"},
+ {id:"dropout",y:2014,n:"Dropout",e:"explosion",who:"Srivastava et al.",d:"“Mata” neuronas aleatoriamente durante el entrenamiento, forzando a la red a no depender de ninguna en particular — como entrenar un conjunto de subredes. Clave contra el sobreajuste.",f:"hᵢ = hᵢ × Bernoulli(p)",rel:["alexnet","resnet","transformer"],p:"https://jmlr.org/papers/v15/srivastava14a.html"},
+ {id:"gan",y:2014,n:"GAN (Red Generativa Antagónica)",e:"explosion",who:"Ian Goodfellow",d:"Dos redes compiten: el Generador crea falsificaciones y el Discriminador juzga real vs falso. Se empujan mutuamente a mejorar. Conduce a StyleGAN.",f:"min_G max_D [E log D(x) + E log(1−D(G(z)))]",rel:["vae","stylegan","diffusion"],p:"https://arxiv.org/abs/1406.2661"},
+ {id:"seq2seq",y:2014,n:"Seq2Seq + Atención",e:"explosion",who:"Bahdanau et al.",d:"El mecanismo de atención permite que el decodificador mire hacia atrás a las partes relevantes de la entrada en cada paso. Revolucionario para la traducción; semilla del Transformer.",f:"atención(Q,K) = softmax(Q·Kᵀ)·V",rel:["lstm","transformer"],p:"https://arxiv.org/abs/1409.0473"},
+ {id:"resnet",y:2015,n:"ResNet",e:"explosion",who:"Kaiming He et al.",d:"Conexiones de salto que aprenden el residual F(x)=H(x)−x. Permiten que los gradientes fluyan por atajos, habilitando redes de +152 capas. Su diseño lo adopta el Transformer.",f:"Salida = F(x) + x  (skip connection)",rel:["alexnet","cnn","vggnet","transformer","vit","unet"],p:"https://arxiv.org/abs/1512.03385"},
+ {id:"batchnorm",y:2015,n:"Normalización por Lotes",e:"explosion",who:"Ioffe & Szegedy",d:"Normaliza las entradas de cada capa a media cero y varianza unitaria. Acelera el entrenamiento y permite tasas de aprendizaje más altas. Adaptada como LayerNorm en Transformer.",f:"x̂ = (x − μ)/√(σ² + ε)·γ + β",rel:["resnet","transformer"],p:"https://arxiv.org/abs/1502.03167"},
+ {id:"unet",y:2015,n:"U-Net",e:"explosion",who:"Ronneberger et al.",d:"Codificador-decodificador para segmentación biomédica: conexiones de salto copian mapas del codificador al decodificador, conservando detalle espacial. Columna vertebral del denoiser de difusión.",f:"skip: enc_out → concat → dec_in",rel:["resnet","diffusion"],p:"https://arxiv.org/abs/1505.04597"},
+ {id:"xgboost",y:2016,n:"XGBoost",e:"transformer",who:"Chen & Guestrin",d:"Gradient boosting extremo: GBDT con regularización, submuestreo de columnas y construcción paralela. Dominó Kaggle por años; sigue siendo la mejor opción para datos tabulares.",f:"obj = Σ pérdida(yᵢ,ŷᵢ) + Σ Ω(árbol)",rel:["gbdt","dtree"],p:"https://arxiv.org/abs/1603.02754"},
+ {id:"wavenet",y:2016,n:"WaveNet",e:"transformer",who:"DeepMind",d:"Modelo de audio autorregresivo: genera habla muestra por muestra con convoluciones causales dilatadas para capturar patrones de largo alcance. Paralelo a la generación de texto de GPT.",f:"P(x) = ∏ P(xₜ | x₁,…,xₜ₋₁)",rel:["cnn","gpt1"],p:"https://arxiv.org/abs/1609.03499"},
+ {id:"alphago",y:2016,n:"AlphaGo",e:"transformer",who:"DeepMind",d:"Combina redes profundas de política y valor con Búsqueda en Árbol Monte Carlo. Derrotó al campeón mundial Lee Sedol 4-1 — algo que se creía imposible. Evolucionó a AlphaZero y AlphaFold.",f:"a* = argmax[Q(s,a) + u(s,a)]  (PUCT)",rel:["cnn","qlearning","alphafold"],p:"https://www.nature.com/articles/nature16961"},
+ {id:"yolo",y:2016,n:"YOLO (You Only Look Once)",e:"transformer",who:"Joseph Redmon",d:"Detector de objetos en tiempo real que unifica regresión de cajas y clasificación en una sola pasada de CNN. Procesa a 45 fps. Inspiró SSD, RetinaNet y los detectores de una etapa.",f:"Cuadrícula S×S → cada celda predice B cajas + C clases",rel:["cnn"],p:"https://arxiv.org/abs/1506.02640"},
+ {id:"transformer",y:2017,n:"Transformer",e:"transformer",who:"Vaswani et al. (Google)",d:"“Attention Is All You Need”: reemplaza las RNN con autoatención. Cada token atiende a todos los demás en paralelo. La columna vertebral de GPT, BERT, ViT y prácticamente toda la IA moderna.",f:"Atención(Q,K,V) = softmax(QKᵀ/√d)·V",rel:["seq2seq","resnet","batchnorm","gpt1","bert","vit","hopfield"],p:"https://arxiv.org/abs/1706.03762"},
+ {id:"ppo",y:2017,n:"PPO (Optimización de Política Próxima)",e:"transformer",who:"John Schulman (OpenAI)",d:"Algoritmo práctico de gradiente de política: recorta la razón de actualización para evitar cambios catastróficos. Simple y confiable. Se volvió la columna vertebral del RLHF.",f:"L = E[min(rₜ·Âₜ, clip(rₜ,1±ε)·Âₜ)]",rel:["chatgpt"],p:"https://arxiv.org/abs/1707.06347"},
+ {id:"elmo",y:2018,n:"ELMo",e:"transformer",who:"Peters et al.",d:"Incrustaciones contextuales: ¡los vectores de palabras cambian según el contexto! “banco” es distinto en “orilla del río” vs “cuenta bancaria”. Superado por BERT.",f:"ELMo(w) = γ(s₀·e + s₁·h→ + s₂·h←)",rel:["word2vec","lstm","bert"],p:"https://arxiv.org/abs/1802.05365"},
+ {id:"gpt1",y:2018,n:"GPT-1",e:"transformer",who:"OpenAI",d:"Primer Transformer Generativo Preentrenado: preentrena en texto masivo con predicción de la siguiente palabra y luego ajusta para tareas. Demostró que el preentrenamiento no supervisado funciona.",f:"P(wₜ | w₁…wₜ₋₁)  vía decodificador Transformer de 12 capas",rel:["transformer","nnlm","gpt2","gpt3","wavenet"],p:"https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf"},
+ {id:"bert",y:2018,n:"BERT",e:"transformer",who:"Google",d:"Codificador bidireccional: a diferencia de GPT (izquierda→derecha), BERT lee en ambas direcciones. Preentrenado enmascarando palabras y prediciéndolas del contexto completo.",f:"[CLS] El [MASK] se sentó… → predecir contexto bidireccional",rel:["transformer","word2vec","elmo","gpt1"],p:"https://arxiv.org/abs/1810.04805"},
+ {id:"stylegan",y:2018,n:"StyleGAN",e:"transformer",who:"NVIDIA",d:"Generador basado en estilo: controla la generación a distintas escalas — rasgos gruesos (pose, forma) y finos (color, textura). Produce caras fotorrealistas. Superado por la difusión.",f:"z → mapeo → w → AdaIN en cada capa",rel:["gan","diffusion"],p:"https://arxiv.org/abs/1812.04948"},
+ {id:"gpt2",y:2019,n:"GPT-2",e:"transformer",who:"OpenAI",d:"10× más grande que GPT-1 (1.5B parámetros). Demostró que escalar produce habilidades emergentes y desempeño zero-shot sin ajuste fino. “Demasiado peligroso para liberar”.",f:"= GPT-1 × 10  →  habilidades emergentes zero-shot",rel:["gpt1","gpt3","gpt4","t5"],p:"https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf"},
+ {id:"transformerxl",y:2019,n:"Transformer-XL",e:"transformer",who:"Dai et al.",d:"Recurrencia a nivel de segmento: almacena y reutiliza estados ocultos del segmento anterior, permitiendo atención más allá de una ventana fija. Su codificación posicional relativa precede a RoPE.",f:"h̃τ = [SG(hτ₋₁) ∘ hτ]  (posición relativa)",rel:["transformer","lstm","llama"],p:"https://arxiv.org/abs/1901.02860"},
+ {id:"t5",y:2019,n:"T5 (Text-to-Text)",e:"transformer",who:"Google",d:"Marco unificado: CADA tarea de PLN es “texto de entrada → texto de salida”. ¿Traducción? ¿Resumen? ¿Clasificación? Un modelo, un formato. Se fusiona con el prompting para crear la IA que sigue instrucciones.",f:"“traducir inglés a alemán: …” → “Das ist gut”",rel:["transformer","gpt2"],p:"https://arxiv.org/abs/1910.10683"},
+ {id:"gpt3",y:2020,n:"GPT-3",e:"fundacional",who:"OpenAI",d:"175B parámetros — 100× GPT-2. La escala por sí sola crea habilidades emergentes: aprendizaje de pocas tomas, razonamiento, generación de código. Sin ajuste fino. Refinado por RLHF en ChatGPT.",f:"175B params · in-context learning (zero/one/few-shot)",rel:["gpt2","chatgpt","gpt4","cot"],p:"https://arxiv.org/abs/2005.14165"},
+ {id:"vit",y:2020,n:"ViT (Vision Transformer)",e:"fundacional",who:"Google",d:"Corta la imagen en parches 16×16, trata cada uno como un “token” y lo alimenta a un Transformer estándar. Sin convoluciones — ¡la atención sola funciona para visión! Habilita CLIP y GPT-4.",f:"imagen → parches 16×16 → + pos. → Transformer → clase",rel:["transformer","cnn","alexnet","resnet","clip","gpt4"],p:"https://arxiv.org/abs/2010.11929"},
+ {id:"diffusion",y:2020,n:"Modelos de Difusión",e:"fundacional",who:"Ho et al.",d:"Añade ruido gradualmente a una imagen hasta destruirla, luego entrena una red para revertir el proceso paso a paso. Genera desde ruido puro. Supera a GAN como paradigma generativo dominante.",f:"Forward: x₀→…→x_T (ruido) | Reverse: x_T→…→x₀",rel:["dae","vae","gan","stylegan","clip","unet","stablediff","sora"],p:"https://arxiv.org/abs/2006.11239"},
+ {id:"alphafold",y:2021,n:"AlphaFold 2",e:"fundacional",who:"DeepMind",d:"Resolvió el problema de plegamiento de proteínas de 50 años con transformadores Evoformer y Atención de Punto Invariante. Precisión casi experimental. Premio Nobel de Química 2024.",f:"MSA → Evoformer(48) → IPA → estructura 3D (ψ, φ, ω)",rel:["transformer","alphago"],p:"https://www.nature.com/articles/s41586-021-03819-2"},
+ {id:"clip",y:2021,n:"CLIP",e:"fundacional",who:"OpenAI",d:"Preentrenamiento contrastivo lenguaje-imagen: aprende a emparejar imágenes con texto sobre 400M de pares. Habilita clasificación zero-shot y la alineación texto-imagen que impulsa la difusión.",f:"max similitud(emb_imagen, emb_texto_correcto)",rel:["vit","transformer","diffusion","stablediff","sora"],p:"https://arxiv.org/abs/2103.00020"},
+ {id:"chatgpt",y:2022,n:"ChatGPT (RLHF)",e:"fundacional",who:"OpenAI",d:"El modelo que lo cambió todo. Entrenamiento en tres pasos: (1) SFT en demos humanas, (2) modelo de recompensa sobre preferencias, (3) optimización con PPO. Su alineación la refina Claude.",f:"SFT → Modelo de Recompensa → PPO  = RLHF",rel:["gpt3","ppo","qlearning","dqn","claude","cot"],p:"https://arxiv.org/abs/2203.02155"},
+ {id:"stablediff",y:2022,n:"Stable Diffusion (LDM)",e:"fundacional",who:"Rombach et al.",d:"Difusión latente: ejecuta el proceso en el espacio comprimido del VAE (8× más pequeño que píxeles), guiado por CLIP. Sus pesos abiertos democratizaron la generación de imágenes.",f:"z_T~N(0,I) → z₀ vía U-Net(z_t, t, τ(texto))",rel:["diffusion","vae","clip","sora"],p:"https://arxiv.org/abs/2112.10752"},
+ {id:"llama",y:2023,n:"LLaMA",e:"fundacional",who:"Meta",d:"LLM de código abierto: modelos más pequeños con MÁS datos igualan a gigantes. LLaMA-13B iguala a GPT-3 (175B). Aplicó las leyes de Chinchilla y desató el ecosistema abierto (Alpaca, Vicuna, Mistral).",f:"13B params + 1T tokens > 175B params + 300B tokens",rel:["transformer","transformerxl"],p:"https://arxiv.org/abs/2302.13971"},
+ {id:"gpt4",y:2023,n:"GPT-4",e:"fundacional",who:"OpenAI",d:"Modelo multimodal: acepta texto E imágenes. Pasa el examen de abogacía, escribe código, analiza gráficos. Se rumorea Mixture-of-Experts con ~1.8T parámetros para eficiencia a escala masiva.",f:"texto + imagen → comprensión unificada | MoE",rel:["gpt3","vit","gpt2","gemini"],p:"https://arxiv.org/abs/2303.08774"},
+ {id:"gemini",y:2023,n:"Gemini",e:"fundacional",who:"Google DeepMind",d:"Nativamente multimodal: a diferencia del enfoque de adaptador de GPT-4, se entrena desde cero en texto, imagen, audio y video en un espacio de tokens unificado. Evolucionó a contexto de +1M (Astra).",f:"todas las modalidades → tokens → Transformer unificado",rel:["transformer","gpt4"],p:"https://arxiv.org/abs/2312.11805"},
+ {id:"claude",y:2024,n:"Claude (IA Constitucional)",e:"fundacional",who:"Anthropic",d:"En lugar de solo retroalimentación humana, Claude sigue principios escritos para autocriticarse y mejorar (RLAIF). Enfatiza utilidad, honestidad e inofensividad y escala la alineación sin etiquetado masivo.",f:"RLHF + IA Constitucional → autocrítica vs principios (RLAIF)",rel:["chatgpt"],p:"https://arxiv.org/abs/2212.08073"},
+ {id:"sora",y:2024,n:"Sora",e:"fundacional",who:"OpenAI",d:"Generación de video: hasta 60 s de alta fidelidad desde texto. Usa un Diffusion Transformer (DiT) sobre parches espacio-temporales. Comprende física y consistencia 3D. La frontera generativa.",f:"texto → parches espacio-temporales → DiT → frames",rel:["diffusion","stablediff","clip","vit"],p:"https://openai.com/sora"},
+ {id:"cot",y:2024,n:"Cadena de Pensamiento / o1",e:"fundacional",who:"Wei et al. / OpenAI",d:"“Pensemos paso a paso” mejora drásticamente el razonamiento multi-paso. o1 internaliza esto como tokens de pensamiento ocultos en inferencia, alcanzando nivel experto en matemáticas y ciencia.",f:"P(resp | preg, paso₁→…→pasoₙ) ≫ P(resp | preg)",rel:["gpt3","chatgpt"],p:"https://arxiv.org/abs/2201.11903"}
+];
+
+/* business cases */
+const CASES=[
+ {n:"Netflix",verdict:"Éxito Rotundo",label:"Recomendación",score:9.4,c:"var(--green)",
+  d:"Personalización hiper-segmentada predictiva. La IA como columna vertebral del negocio, no un aditivo.",
+  lesson:"La IA resolvió el problema crítico del churn (90 s para enganchar al usuario) y multiplicó el valor del catálogo. Liderazgo pionero con cultura de experimentación a gran escala."},
+ {n:"Kavak",verdict:"Escala & Servicio",label:"Operaciones",score:6.9,c:"var(--cyan)",
+  d:"Tasación algorítmica para el mercado de autos usados en LATAM. Primer unicornio mexicano.",
+  lesson:"Excelente visión disruptiva, pero el crecimiento de la IA superó el control del factor humano: cuello de botella en la postventa física y reacondicionamiento."},
+ {n:"Duolingo",verdict:"Fricción Social",label:"Eficiencia",score:7.8,c:"var(--amber)",
+  d:"Integración veloz de GPT-4 (“Duolingo Max”) y recorte de traductores independientes.",
+  lesson:"Visión estratégica brillante y valor inmediato, pero el manejo del desplazamiento laboral detonó una crisis de reputación. La ética del factor humano pesó tanto como la tecnología."},
+ {n:"Zillow Offers",verdict:"Fracaso Financiero",label:"Algoritmo",score:3.6,c:"var(--orange)",
+  d:"Colapso multimillonario en iBuying inmobiliario por confiar ciegamente en el algoritmo “Zestimate”.",
+  lesson:"Apuesta “bet-the-company” sin margen de seguridad. Eliminar la validación humana local llevó a comprar propiedades sobrevaloradas e inventario ilíquido. Retorno catastrófico (−500M)."},
+ {n:"IBM Oncology",verdict:"Fracaso por Hype",label:"Medicina",score:2.8,c:"var(--pink)",
+  d:"Watson Health: falsas promesas de “curar el cáncer” antes de validar utilidad clínica real.",
+  lesson:"Marketing por encima del rigor científico. Datos sintéticos y sesgados llevaron a recomendaciones peligrosas; los oncólogos perdieron la confianza. Soberbia tecnológica."}
+];
+
+/* ===== RENDER TIMELINE ===== */
+const sorted=[...M].sort((a,b)=>a.y-b.y);
+const tl=document.getElementById("timeline");
+const byId={}; M.forEach(m=>byId[m.id]=m);
+let lastEra=null;
+sorted.forEach((m,i)=>{
+  if(m.e!==lastEra){
+    const div=document.createElement("div");
+    div.className="era-div";div.dataset.era=m.e;
+    div.style.setProperty("--c",ERAS[m.e].c);
+    div.innerHTML=`<span>${ERAS[m.e].name}</span>`;
+    tl.appendChild(div);
+    lastEra=m.e;
+  }
+  const side=i%2===0?"left":"right";
+  const node=document.createElement("div");
+  node.className=`node ${side}`;
+  node.dataset.era=m.e;node.dataset.id=m.id;
+  node.style.setProperty("--c",ERAS[m.e].c);
+  node.innerHTML=`
+    <span class="dot" style="--c:${ERAS[m.e].c}"></span>
+    <div class="card" style="--c:${ERAS[m.e].c}" data-id="${m.id}">
+      <div class="yr">${m.y}</div>
+      <h4>${m.n}</h4>
+      <div class="who">${m.who}</div>
+      <div class="desc">${m.d}</div>
+      <span class="more">VER DETALLE + RELACIONES →</span>
+    </div>`;
+  tl.appendChild(node);
+});
+document.getElementById("s-models").textContent=M.length;
+
+/* ===== MODAL ===== */
+const modalbg=document.getElementById("modalbg"),modal=document.getElementById("modal");
+function openModal(id){
+  const m=byId[id];if(!m)return;
+  modal.style.setProperty("--c",ERAS[m.e].c);
+  document.getElementById("m-era").textContent=`${ERAS[m.e].name} · ${m.y}`;
+  document.getElementById("m-name").textContent=m.n;
+  document.getElementById("m-who").textContent=m.who;
+  document.getElementById("m-desc").textContent=m.d;
+  const fw=document.getElementById("m-formula-wrap");
+  if(m.f){fw.style.display="";document.getElementById("m-formula").textContent=m.f;}else fw.style.display="none";
+  const rel=document.getElementById("m-rel"),rw=document.getElementById("m-rel-wrap");
+  rel.innerHTML="";
+  const rels=(m.rel||[]).filter(r=>byId[r]);
+  if(rels.length){rw.style.display="";
+    rels.forEach(r=>{
+      const c=document.createElement("span");
+      c.className="chip";c.textContent=byId[r].n;
+      c.onclick=()=>{openModal(r);};
+      rel.appendChild(c);
+    });
+  }else rw.style.display="none";
+  const pp=document.getElementById("m-paper");
+  if(m.p){pp.style.display="";pp.href=m.p;}else pp.style.display="none";
+  modalbg.classList.add("open");
+}
+function closeModal(){modalbg.classList.remove("open");}
+document.getElementById("closeM").onclick=closeModal;
+modalbg.onclick=e=>{if(e.target===modalbg)closeModal();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+tl.addEventListener("click",e=>{
+  const card=e.target.closest(".card");
+  if(card)openModal(card.dataset.id);
+});
+
+/* ===== FILTER + SEARCH ===== */
+const q=document.getElementById("q"),countEl=document.getElementById("count");
+let activeEra="all";
+function applyFilter(){
+  const term=q.value.trim().toLowerCase();
+  let shown=0;
+  document.querySelectorAll(".node").forEach(node=>{
+    const m=byId[node.dataset.id];
+    const eraOk=activeEra==="all"||m.e===activeEra;
+    const hay=(m.n+" "+m.who+" "+m.y+" "+m.d).toLowerCase();
+    const searchOk=!term||hay.includes(term);
+    const ok=eraOk&&searchOk;
+    node.style.display=ok?"":"none";
+    if(ok)shown++;
+  });
+  // toggle era dividers depending on visible nodes after them
+  document.querySelectorAll(".era-div").forEach(div=>{
+    const eraOk=activeEra==="all"||div.dataset.era===activeEra;
+    div.style.display=eraOk&&!term?"":"none";
+  });
+  countEl.textContent=`${shown} / ${M.length} modelos`;
+  revealVisible();
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  const b=e.target.closest(".fbtn");if(!b)return;
+  document.querySelectorAll(".fbtn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");activeEra=b.dataset.era;applyFilter();
+});
+q.addEventListener("input",applyFilter);
+
+/* ===== SCROLL REVEAL + PROGRESS SPINE ===== */
+const io=new IntersectionObserver(es=>{
+  es.forEach(en=>{if(en.isIntersecting)en.target.classList.add("show");});
+},{threshold:.15});
+function revealVisible(){document.querySelectorAll(".node").forEach(n=>{if(n.style.display!=="none")io.observe(n);});}
+revealVisible();
+
+const fill=document.getElementById("fill"),spine=document.querySelector(".spine");
+const sbar=document.getElementById("scrollbar");
+function onScroll(){
+  const h=document.documentElement;
+  const sp=h.scrollTop/(h.scrollHeight-h.clientHeight);
+  sbar.style.width=(sp*100)+"%";
+  const sec=document.getElementById("timeline-sec");
+  const r=tl.getBoundingClientRect();
+  const vh=window.innerHeight;
+  const total=r.height;
+  const passed=Math.min(Math.max(vh*0.5 - r.top,0),total);
+  fill.style.height=(total>0?(passed/total*100):0)+"%";
+}
+window.addEventListener("scroll",onScroll,{passive:true});
+window.addEventListener("resize",onScroll);
+onScroll();applyFilter();
+
+/* ===== RENDER CASES ===== */
+const cases=document.getElementById("cases");
+CASES.forEach(c=>{
+  const el=document.createElement("div");
+  el.className="case";el.style.setProperty("--cc",c.c);
+  el.innerHTML=`
+    <span class="verdict">${c.verdict}</span>
+    <h3>${c.n}</h3>
+    <p>${c.d}</p>
+    <div class="score"><b>${c.score.toFixed(1)}</b><small>/ 10 · ${c.label}</small></div>
+    <div class="bar"><i data-w="${c.score*10}"></i></div>
+    <div class="lesson">${c.lesson}</div>`;
+  cases.appendChild(el);
+});
+const barIO=new IntersectionObserver(es=>{
+  es.forEach(en=>{if(en.isIntersecting){en.target.style.width=en.target.dataset.w+"%";barIO.unobserve(en.target);}});
+},{threshold:.4});
+document.querySelectorAll(".bar i").forEach(b=>barIO.observe(b));
+
+/* count up hero stat */
+const sm=document.getElementById("s-models");
+let cv=0;const tgt=M.length;
+const ci=setInterval(()=>{cv+=2;if(cv>=tgt){cv=tgt;clearInterval(ci);}sm.textContent=cv;},30);
+</script>
+</body>
+</html>
